@@ -1,63 +1,82 @@
-use std::{collections::HashMap, cmp};
+use std::{cmp, collections::HashSet};
 
 impl Solution {
     pub fn length_of_longest_substring(s: String) -> i32 {
-        let map = make_indices_hashmap(s.clone());
+        let chars: Vec<char> = s.chars().into_iter().collect();
+
+        let mut crawler = Crawler::new();
+        let mut longest: usize = 0;
+
+        loop {
+            longest = cmp::max(longest, crawler.len());
+
+            if crawler.is_done(&chars) {
+                break;
+            } else if crawler.can_grow(&chars) {
+                crawler.grow(&chars);
+            } else {
+                crawler.shrink(&chars);
+            }
+        }
+
+        return longest as i32;
+    }
+}
+
+struct Crawler {
+    start: usize,
+    end: usize,
+    chars: HashSet<char>,
+}
+
+impl Crawler {
+    pub fn new() -> Crawler {
+        return Crawler {
+            start: 0,
+            end: 0,
+            chars: HashSet::<char>::new()
+        };
+    }
+
+    pub fn len(&self) -> usize {
+        return self.end - self.start;
+    }
+
+    pub fn can_grow(&self, chars: &Vec<char>) -> bool {
+        let contains_next_char = self.chars.contains(&self.get_next_char(chars));
         
-        let length = s.len();
-        let length = find_largest_distance(map, length).unwrap_or(length);
-        
-        return length as i32;
-    }
-}
-
-// Map map of characters, and indices of those characters.
-fn make_indices_hashmap(s: String) -> HashMap<char, Vec<usize>> {
-    let mut result = HashMap::<char, Vec<usize>>::new();
-
-    for (i, c) in s.chars().enumerate() {
-        result.entry(c).or_insert(vec![]);
-        result.entry(c).and_modify(|v| v.push(i));
+        return !self.is_done(chars) && !contains_next_char;
     }
 
-    return result;
-}
+    pub fn is_done(&self, chars: &Vec<char>) -> bool {
+        return self.end == chars.len();
+    }
 
-// Look for longest distance between character occurances.
-// If each character only occurs once (example, "abc") then this
-// returns None
-fn find_largest_distance(map: HashMap<char, Vec<usize>>, length: usize) -> Option<usize> {
-    let result = map
-        .values()
-        .map(|v| find_largest_distance_within_vec(v, length))
-        .max();
+    pub fn grow(&mut self, chars: &Vec<char>) {
+        self.end += 1;
+        self.chars.insert(self.get_last_char(chars));
+    }
 
-    return match result {
-        Some(v) => v,
-        None => None,
+    pub fn shrink(&mut self, chars: &Vec<char>) {
+        self.chars.remove(&self.get_first_char(chars));
+        self.start += 1;
+    }
+
+    fn get_first_char(&self, chars: &Vec<char>) -> char {
+        return self.get_char(chars, self.start);
+    }
+
+    fn get_last_char(&self, chars: &Vec<char>) -> char {
+        return self.get_char(chars, self.end - 1);
+    }
+
+    fn get_next_char(&self, chars: &Vec<char>) -> char {
+        return self.get_char(chars, self.end);
+    }
+
+    fn get_char(&self, chars: &Vec<char>, idx: usize) -> char {
+        return chars[idx];
     }
 }
-
-// Take vec of character indices, find longest gap.
-fn find_largest_distance_within_vec(v: &Vec<usize>, length: usize) -> Option<usize> {
-    if v.len() == 0 {
-        return None;
-    } else if v.len() == 1 {
-        let first = v[0];
-        let last = v[v.len() - 1];
-        
-        let start_diff = first;
-        let end_diff = length - last;
-
-        return Some(cmp::max(start_diff, end_diff));
-    } else {
-        return v
-            .iter()
-            .zip(v.iter().skip(1))
-            .map(|f| f.1 - f.0)
-            .max();
-    }
-}
-
 
 pub (crate) struct Solution;
