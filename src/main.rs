@@ -1,21 +1,15 @@
 #[allow(dead_code)]
 mod pkg;
 
-use rand::{thread_rng, distributions::Alphanumeric, Rng};
-
-use crate::pkg::longest_substring_without_repeating_characters;
+use crate::pkg::add_two_numbers::{self, vec_to_linked_list, make_vector};
 
 fn main() {
-    let s = String::from(make_test_case(10000));
-    let answer = longest_substring_without_repeating_characters::Solution::length_of_longest_substring(s);
+    let l1 = vec_to_linked_list(vec![9,9,9,9,9,9,9]);
+    let l2 = vec_to_linked_list(vec![9, 9, 9, 9]);
 
-    println!("{}", answer);
+    let answer = add_two_numbers::Solution::add_two_numbers(l1, l2);
+    let answer_vec = make_vector(answer);
+
+    println!("{:?}", answer_vec);
 }
 
-fn make_test_case(len: usize) -> String {
-    return thread_rng()
-    .sample_iter(&Alphanumeric)
-    .take(len)
-    .map(char::from)
-    .collect();
-}
